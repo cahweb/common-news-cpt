@@ -46,17 +46,11 @@ function news_create_type() {
 }
 
 add_action("admin_init", "news_init");
-add_action( 'rest_api_init', 'slug_register_approved' );
 add_action('save_post', 'news_save');
 
-// Add the meta boxes to our CPT page
-function news_init() {
-	global $current_user;
 
-    if($current_user->roles[0] == 'administrator') {
-        add_meta_box("news-admin-meta", "Admin Only", "news_meta_admin", "news", "normal", "high");
-    }
-}
+/*----- API Meta Registration ----*/
+add_action( 'rest_api_init', 'slug_register_approved' );
 
 function slug_register_approved() {
     register_rest_field( 'news',
@@ -75,6 +69,76 @@ function slug_get_approved( $object, $field_name, $request ) {
     
     else
     	return "no";
+}
+
+
+
+/*----- Shortcode Functions ------*/
+add_shortcode('news', 'news_func');
+
+function news_func($atts){
+	$json = array();
+	$urls = explode(",", get_option('news_list_option'));
+
+	foreach($urls as $url){
+		$result = json_decode(file_get_contents("https://".$url."/wp-json/wp/v2/news"));
+		
+		if(empty($result))
+			return "One of the URLs entered is not a valid Wordpress API instance or does not have the CAH news plugin installed.";
+
+		$json = array_merge($result, $json);
+	}
+
+	foreach($json as $post)
+		echo $post->{"content"}->{"rendered"};
+}
+
+
+
+function news_list_option_register_settings() {
+   add_option( 'news_list_option', '');
+   register_setting( 'news_list_option_group', 'news_list_option', 'news_list_option_callback' );
+}
+
+add_action( 'admin_init', 'news_list_option_register_settings' );
+
+
+
+function news_list_register_option_page() {
+  add_options_page('News Configuration', 'News Configuration', 'manage_options', 'news-list', 'news_list_option_page');
+}
+add_action('admin_menu', 'news_list_register_option_page');
+
+
+
+function news_list_option_page() {
+?>
+  <div>
+	  <h2>News Plugin Configuration</h2>
+	  <p>Please enter the urls of each Wordpress Site you wish to pull news from.</p>
+	  <p>(ex. arts.cah.ucf.edu,floridareview.cah.ucf.edu)</p>
+	  <form method="post" action="options.php">
+		  <?php settings_fields( 'news_list_option_group' ); ?>
+		  <table>
+		  <tr valign="top">
+		  <th scope="row"><label for="news_list_option">URLs: </label></th>
+		  <td><input type="text" id="news_list_option" name="news_list_option" value="<?php echo get_option('news_list_option'); ?>" /></td>
+		  </tr>
+		  </table>
+		  <?php  submit_button(); ?>
+	  </form>
+  </div>
+<?php
+}
+
+
+/*------ Metabox Functions --------*/
+function news_init() {
+	global $current_user;
+
+    if($current_user->roles[0] == 'administrator') {
+        add_meta_box("news-admin-meta", "Admin Only", "news_meta_admin", "news", "normal", "high");
+    }
 }
 
 // Meta box functions
