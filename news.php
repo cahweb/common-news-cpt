@@ -81,16 +81,23 @@ function news_func($atts){
 	$urls = explode(",", get_option('news_list_option'));
 
 	foreach($urls as $url){
-		$result = json_decode(file_get_contents("https://".$url."/wp-json/wp/v2/news"));
+		$file = file_get_contents("https://".$url."/wp-json/wp/v2/news");
 		
-		if(empty($result))
+		if(empty($file))
 			return "One of the URLs entered is not a valid Wordpress API instance or does not have the CAH news plugin installed.";
 
+		$result = json_decode($file);
 		$json = array_merge($result, $json);
 	}
 
-	foreach($json as $post)
+	foreach($json as $post) {
+
+		if($post->{"approved"} != "yes")
+			continue;
+
+		echo $post->{"title"}->{"rendered"};
 		echo $post->{"content"}->{"rendered"};
+	}
 }
 
 
