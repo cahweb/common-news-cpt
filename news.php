@@ -50,25 +50,41 @@ add_action('save_post', 'news_save');
 
 
 /*----- API Meta Registration ----*/
-add_action( 'rest_api_init', 'slug_register_approved' );
+add_action( 'rest_api_init', 'api_register_approved' );
+add_action( 'rest_api_init', 'api_register_site_name' );
 
-function slug_register_approved() {
+function api_register_approved() {
     register_rest_field( 'news',
         'approved',
         array(
-            'get_callback'    => 'slug_get_approved',
+            'get_callback'    => 'api_get_approved',
             'update_callback' => null,
             'schema'          => null,
         )
     );
 }
 
-function slug_get_approved( $object, $field_name, $request ) {
+function api_get_approved( $object, $field_name, $request ) {
     if(get_post_meta( $object[ 'id' ], $field_name, true ) == "on")
     	return "yes";
     
     else
     	return "no";
+}
+
+function api_register_site_name() {
+    register_rest_field( 'news',
+        'site_name',
+        array(
+            'get_callback'    => 'api_get_site_name',
+            'update_callback' => null,
+            'schema'          => null,
+        )
+    );
+}
+
+function api_get_site_name( $object, $field_name, $request ) {
+    return get_option('blogname');
 }
 
 
@@ -87,20 +103,33 @@ function news_func($atts){
 			return "One of the URLs entered is not a valid Wordpress API instance or does not have the CAH news plugin installed.";
 
 		$result = json_decode($file);
+
+		foreach($result as $post){
+			$post->{"date"} = strtotime($post->{"date"});
+		}
+
 		$json = array_merge($result, $json);
 	}
+
+
+	usort($json, function($a, $b) {
+		    if ($a->{"date"} == $b->{"date"}) {
+		        return 0;
+		    }
+		    return ( $a->{"date"} > $b->{"date"}) ? -1 : 1;
+		}
+	);
+
 
 	foreach($json as $post) {
 
 		if($post->{"approved"} != "yes")
 			continue;
 
-		echo $post->{"title"}->{"rendered"};
+		echo $post->{"title"}->{"rendered"}." ".$post->{"date"};
 		echo $post->{"content"}->{"rendered"};
 	}
 }
-
-
 
 function news_list_option_register_settings() {
    add_option( 'news_list_option', '');
