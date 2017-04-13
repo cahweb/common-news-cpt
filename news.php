@@ -126,7 +126,7 @@ function news_func($atts){
 		if($post->{"approved"} != "yes")
 			continue;
 
-		echo $post->{"title"}->{"rendered"}." ".$post->{"date"};
+		echo $post->{"title"}->{"rendered"}." ".$post->{"site_name"};
 		echo $post->{"content"}->{"rendered"};
 	}
 }
@@ -166,6 +166,7 @@ function news_list_option_page() {
   </div>
 <?php
 }
+
 
 
 /*------ Metabox Functions --------*/
