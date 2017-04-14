@@ -52,6 +52,7 @@ add_action('save_post', 'news_save');
 /*----- API Meta Registration ----*/
 add_action( 'rest_api_init', 'api_register_approved' );
 add_action( 'rest_api_init', 'api_register_site_name' );
+add_action( 'rest_api_init', 'api_register_featured_media' );
 
 function api_register_approved() {
     register_rest_field( 'news',
@@ -87,6 +88,20 @@ function api_get_site_name( $object, $field_name, $request ) {
     return get_option('blogname');
 }
 
+function api_register_featured_media() {
+    register_rest_field( 'news',
+        'featured_media',
+        array(
+            'get_callback'    => 'api_get_featured_media',
+            'update_callback' => null,
+            'schema'          => null,
+        )
+    );
+}
+
+function api_get_featured_media( $object, $field_name, $request ) {
+    return wp_get_attachment_url($object["featured_media"]);
+}
 
 
 /*----- Shortcode Functions ------*/
@@ -120,15 +135,31 @@ function news_func($atts){
 		}
 	);
 
+	echo "<div class=\"cah-news\">";
 
 	foreach($json as $post) {
 
 		if($post->{"approved"} != "yes")
 			continue;
 
-		echo $post->{"title"}->{"rendered"}." ".$post->{"site_name"};
-		echo $post->{"content"}->{"rendered"};
+		$title = $post->{"title"}->{"rendered"};
+		$site_name = $post->{"site_name"};
+		$excerpt = $post->{"excerpt"}->{"rendered"};
+		$thumbnail = wp_get_attachment_url($post->{"featured_media"});
+
+		?>
+
+			<div class="cah-news-article">
+				<h2 class="cah-news-title"><?=$title?></h2>
+				<h3 class="cah-news-site"><?=$site_name?></h3>
+				<p><?=$thumbnail?></p>
+			</div>
+
+		<?php
+
 	}
+
+	echo "</div>";
 }
 
 function news_list_option_register_settings() {
