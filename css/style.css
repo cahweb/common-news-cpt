@@ -17,6 +17,8 @@
 .cah-news-article {
 	font-family: Gotham;
 	display: flex;
+	padding: 10px;
+	margin-bottom: 20px;
 }
 
 .cah-news-article:hover{
@@ -64,4 +66,8 @@
 	margin: 0;
 	color: black;
 	font-weight: light;
+}
+
+.cah-news-article .cah-news-excerpt * {
+	margin: 0;
 }

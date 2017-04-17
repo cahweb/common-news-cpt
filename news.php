@@ -111,7 +111,7 @@ add_shortcode('news', 'news_func');
 
 function news_func($atts){
 	$json = array();
-	$urls = explode(",", get_option('news_list_option'));
+	$urls = explode(";", get_option('news_list_option'));
 
 	foreach($urls as $url){
 		$file = file_get_contents("https://".$url."/wp-json/wp/v2/news");
@@ -163,7 +163,7 @@ function news_func($atts){
 				<div class="cah-news-content">
 					<h3 class="cah-news-site"><?=$site_name?></h3>
 					<h2 class="cah-news-title"><?=$title?></h2>
-					<p class="cah-news-excerpt"><?=$excerpt?></p>
+					<div class="cah-news-excerpt"><?=$excerpt?></div>
 				</div>
 			</div>
 
@@ -185,6 +185,7 @@ function news_style_option_register_settings() {
    register_setting( 'news_option_group', 'news_style_option', 'news_style_option_callback' );
 }
 
+add_action( 'admin_init', 'news_list_option_register_settings' );
 add_action( 'admin_init', 'news_style_option_register_settings' );
 
 
@@ -204,19 +205,15 @@ function news_list_option_page() {
 	  <p>(ex. arts.cah.ucf.edu,floridareview.cah.ucf.edu)</p>
 	  <form method="post" action="options.php">
 		  <?php settings_fields( 'news_option_group' ); ?>
-		  <table>
-		  <tr>
-		  <th scope="row"><label for="news_list_option">URLs: </label></th>
-		  <td><input type="text" id="news_list_option" name="news_list_option" value="<?php echo get_option('news_list_option'); ?>" /></td>
-		  </tr>
-		  <tr>
-		  <th scope="row"><label for="news_style_option">Use default style: </label></th>
-		  <td><input type="checkbox" id="news_style_option" name="news_style_option" <?php 
+		  <label for="news_list_option">URLs: </label>
+		  <input type="text" id="news_list_option" name="news_list_option" value="<?php echo get_option('news_list_option'); ?>">
+		  <br>
+
+		  <label for="news_style_option">Use default style: </label>
+		  <input type="checkbox" id="news_style_option" name="news_style_option" <?php 
 		  	if(get_option('news_style_option') == "on")
 		  		echo "checked=\"checked\"";
-		  ?> /></td>
-		  </tr>
-		  </table>
+		  ?> />
 		  <?php  submit_button(); ?>
 	  </form>
   </div>
