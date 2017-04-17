@@ -1,0 +1,67 @@
+@font-face {
+	font-family: Gotham;
+	font-weight: bold;
+	src: url("../fonts/Gotham-Bold.ttf") format("truetype");
+}
+
+@font-face {
+	font-family: Gotham;
+	font-weight: light;
+	src: url("../fonts/Gotham-Book.ttf") format("truetype");
+}
+
+.cah-news {
+	max-width: 600px;
+}
+
+.cah-news-article {
+	font-family: Gotham;
+	display: flex;
+}
+
+.cah-news-article:hover{
+	cursor: pointer;
+	background-color: #EEEEEE;
+}
+
+.cah-news-article .cah-news-thumbnail {
+	height: 150px;
+	width: 150px;
+	background-position: center;
+	background-size: cover;
+	display: inline-block;
+
+}
+
+.cah-news-article .cah-news-content {
+	display: inline-block;
+	margin-left: 10px;
+	flex: 2;
+}
+
+.cah-news-article .cah-news-title {
+	font-weight: bold;
+	padding: 0;
+	margin: 0;
+	font-size: 20px;
+	color: black;
+}
+
+.cah-news-article .cah-news-site {
+	font-weight: bold;
+	letter-spacing: 1px;
+	padding: 2px 15px;
+	margin: 0;
+	font-size: 11px;
+	color: black;
+	font-weight: bold;
+	background-color: #FFC904;
+	display: inline-block;
+}
+
+.cah-news-article .cah-news-excerpt {
+	padding: 0;
+	margin: 0;
+	color: black;
+	font-weight: light;
+}

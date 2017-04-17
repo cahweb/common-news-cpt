@@ -14,12 +14,14 @@
 // ini_set('display_startup_errors', 1);
 // error_reporting(E_ALL);
 
-// Load our CSS
-function news_load_plugin_css() {
-    wp_enqueue_style( 'news-plugin-style', plugin_dir_url(__FILE__) . 'css/style.css');
-}
-add_action( 'admin_enqueue_scripts', 'news_load_plugin_css' );
+// Load our CSS if option is on
+if(get_option('news_style_option') == "on") 
+	add_action('wp_enqueue_scripts', 'add_style');
 
+function add_style(){
+	wp_register_style('news-style', plugins_url('css/style.css', __FILE__));
+	wp_enqueue_style('news-style');
+}
 // Add create function to init
 add_action('init', 'news_create_type');
 
@@ -145,14 +147,24 @@ function news_func($atts){
 		$title = $post->{"title"}->{"rendered"};
 		$site_name = $post->{"site_name"};
 		$excerpt = $post->{"excerpt"}->{"rendered"};
-		$thumbnail = wp_get_attachment_url($post->{"featured_media"});
+		$thumbnail = $post->{"featured_media"};
+		$url = $post->{"link"};
 
 		?>
 
-			<div class="cah-news-article">
-				<h2 class="cah-news-title"><?=$title?></h2>
-				<h3 class="cah-news-site"><?=$site_name?></h3>
-				<p><?=$thumbnail?></p>
+			<div class="cah-news-article" onclick="location.href='<?=$url?>'">
+			<?php
+				if(!empty($thumbnail)):
+			?>
+				<div class="cah-news-thumbnail" style="background-image: url(<?=$thumbnail?>);""></div>
+			<?php
+				endif;
+			?>
+				<div class="cah-news-content">
+					<h3 class="cah-news-site"><?=$site_name?></h3>
+					<h2 class="cah-news-title"><?=$title?></h2>
+					<p class="cah-news-excerpt"><?=$excerpt?></p>
+				</div>
 			</div>
 
 		<?php
@@ -162,12 +174,18 @@ function news_func($atts){
 	echo "</div>";
 }
 
+// add options
 function news_list_option_register_settings() {
-   add_option( 'news_list_option', '');
-   register_setting( 'news_list_option_group', 'news_list_option', 'news_list_option_callback' );
+   add_option( 'news_list_option', 'on');
+   register_setting( 'news_option_group', 'news_list_option', 'news_list_option_callback' );
 }
 
-add_action( 'admin_init', 'news_list_option_register_settings' );
+function news_style_option_register_settings() {
+   add_option( 'news_style_option', '');
+   register_setting( 'news_option_group', 'news_style_option', 'news_style_option_callback' );
+}
+
+add_action( 'admin_init', 'news_style_option_register_settings' );
 
 
 
@@ -185,11 +203,18 @@ function news_list_option_page() {
 	  <p>Please enter the urls of each Wordpress Site you wish to pull news from.</p>
 	  <p>(ex. arts.cah.ucf.edu,floridareview.cah.ucf.edu)</p>
 	  <form method="post" action="options.php">
-		  <?php settings_fields( 'news_list_option_group' ); ?>
+		  <?php settings_fields( 'news_option_group' ); ?>
 		  <table>
-		  <tr valign="top">
+		  <tr>
 		  <th scope="row"><label for="news_list_option">URLs: </label></th>
 		  <td><input type="text" id="news_list_option" name="news_list_option" value="<?php echo get_option('news_list_option'); ?>" /></td>
+		  </tr>
+		  <tr>
+		  <th scope="row"><label for="news_style_option">Use default style: </label></th>
+		  <td><input type="checkbox" id="news_style_option" name="news_style_option" <?php 
+		  	if(get_option('news_style_option') == "on")
+		  		echo "checked=\"checked\"";
+		  ?> /></td>
 		  </tr>
 		  </table>
 		  <?php  submit_button(); ?>
