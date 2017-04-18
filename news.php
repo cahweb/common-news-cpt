@@ -108,13 +108,15 @@ function api_get_featured_media( $object, $field_name, $request ) {
 
 /*----- Shortcode Functions ------*/
 add_shortcode('news', 'news_func');
+add_filter('widget_text', 'do_shortcode');
 
 function news_func($atts){
 	$json = array();
 	$urls = explode(";", get_option('news_list_option'));
 
 	foreach($urls as $url){
-		$file = file_get_contents("https://".$url."/wp-json/wp/v2/news");
+
+		$file = file_get_contents("https://".trim($url, " ")."/wp-json/wp/v2/news");
 		
 		if(empty($file))
 			return "One of the URLs entered is not a valid Wordpress API instance or does not have the CAH news plugin installed.";
@@ -139,7 +141,13 @@ function news_func($atts){
 
 	echo "<div class=\"cah-news\">";
 
+	$post_amount = 4;
+	$count = 0;
+
 	foreach($json as $post) {
+
+		if($count == $post_amount)
+			break;
 
 		if($post->{"approved"} != "yes")
 			continue;
@@ -153,13 +161,10 @@ function news_func($atts){
 		?>
 
 			<div class="cah-news-article" onclick="location.href='<?=$url?>'">
-			<?php
-				if(!empty($thumbnail)):
-			?>
-				<div class="cah-news-thumbnail" style="background-image: url(<?=$thumbnail?>);""></div>
-			<?php
-				endif;
-			?>
+
+				<div class="cah-news-thumbnail" 
+					style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);""></div>
+
 				<div class="cah-news-content">
 					<h3 class="cah-news-site"><?=$site_name?></h3>
 					<h2 class="cah-news-title"><?=$title?></h2>
@@ -168,7 +173,7 @@ function news_func($atts){
 			</div>
 
 		<?php
-
+		$count++;
 	}
 
 	echo "</div>";
@@ -201,8 +206,8 @@ function news_list_option_page() {
 ?>
   <div>
 	  <h2>News Plugin Configuration</h2>
-	  <p>Please enter the urls of each Wordpress Site you wish to pull news from.</p>
-	  <p>(ex. arts.cah.ucf.edu,floridareview.cah.ucf.edu)</p>
+	  <p>Please enter the urls of each Wordpress Site you wish to pull news from separated by semicolons.</p>
+	  <p>(ex. arts.cah.ucf.edu;floridareview.cah.ucf.edu)</p>
 	  <form method="post" action="options.php">
 		  <?php settings_fields( 'news_option_group' ); ?>
 		  <label for="news_list_option">URLs: </label>

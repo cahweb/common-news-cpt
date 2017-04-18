@@ -11,14 +11,15 @@
 }
 
 .cah-news {
-	max-width: 600px;
+	padding: 15px;
 }
 
 .cah-news-article {
 	font-family: Gotham;
 	display: flex;
-	padding: 10px;
-	margin-bottom: 20px;
+	padding: 5px;
+	margin-bottom: 10px;
+	min-height: 125px;
 }
 
 .cah-news-article:hover{
@@ -27,16 +28,14 @@
 }
 
 .cah-news-article .cah-news-thumbnail {
-	height: 150px;
-	width: 150px;
+	height: 75px;
+	width: 75px;
 	background-position: center;
 	background-size: cover;
 	display: inline-block;
-
 }
 
 .cah-news-article .cah-news-content {
-	display: inline-block;
 	margin-left: 10px;
 	flex: 2;
 }
@@ -44,8 +43,8 @@
 .cah-news-article .cah-news-title {
 	font-weight: bold;
 	padding: 0;
-	margin: 0;
-	font-size: 20px;
+	margin: 0 0 5px 0;
+	font-size: 18px;
 	color: black;
 }
 
@@ -66,8 +65,29 @@
 	margin: 0;
 	color: black;
 	font-weight: light;
+	font-size: 14px;
 }
 
 .cah-news-article .cah-news-excerpt * {
 	margin: 0;
+}
+
+@media (min-width: 768px) {
+	.cah-news {
+		max-width: 600px;
+		margin: auto;
+	}
+
+	.cah-news-article {
+		margin-bottom: 20px;
+	}
+
+	.cah-news-article .cah-news-thumbnail {
+		height: 150px;
+		width: 150px;
+	}
+
+	.cah-news-article .cah-news-title {
+		font-size: 20px;
+	}
 }
