@@ -110,9 +110,15 @@ function api_get_featured_media( $object, $field_name, $request ) {
 add_shortcode('news', 'news_func');
 add_filter('widget_text', 'do_shortcode');
 
-function news_func($atts){
+function news_func($atts = [], $content = null, $tag = '') {
 	$json = array();
 	$urls = explode(";", get_option('news_list_option'));
+
+	// normalize attribute keys, lowercase
+    $atts = array_change_key_case((array)$atts, CASE_LOWER);
+ 
+    // override default attributes with user attributes
+    $cah_atts = shortcode_atts(['numposts' => '4'], $atts, $tag);
 
 	foreach($urls as $url){
 
@@ -141,7 +147,7 @@ function news_func($atts){
 
 	echo "<div class=\"cah-news\">";
 
-	$post_amount = 4;
+	$post_amount = $cah_atts['numposts'];
 	$count = 0;
 
 	foreach($json as $post) {
@@ -149,33 +155,57 @@ function news_func($atts){
 		if($count == $post_amount)
 			break;
 
-		if($post->{"approved"} != "yes")
-			continue;
-
 		$title = $post->{"title"}->{"rendered"};
 		$site_name = $post->{"site_name"};
 		$excerpt = $post->{"excerpt"}->{"rendered"};
 		$thumbnail = $post->{"featured_media"};
 		$url = $post->{"link"};
 
-		?>
+		if($count == 0) {
+			?>
+				<div class="cah-news-feature">
+					<div class="cah-news-article" onclick="location.href='<?=$url?>'">
 
-			<div class="cah-news-article" onclick="location.href='<?=$url?>'">
+						<div class="cah-news-thumbnail" 
+							style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);""></div>
 
-				<div class="cah-news-thumbnail" 
-					style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);""></div>
-
-				<div class="cah-news-content">
-					<h3 class="cah-news-site"><?=$site_name?></h3>
-					<h2 class="cah-news-title"><?=$title?></h2>
-					<div class="cah-news-excerpt"><?=$excerpt?></div>
+						<div class="cah-news-content">
+							<h3 class="cah-news-site"><?=$site_name?></h3>
+							<h2 class="cah-news-title"><?=$title?></h2>
+							<div class="cah-news-excerpt"><?=$excerpt?></div>
+						</div>
+					</div>
 				</div>
-			</div>
 
-		<?php
+				<div class="cah-news-items">
+			<?php
+
+		} else {
+
+			if($post->{"approved"} != "yes")
+				continue;
+
+			?>
+
+				<div class="cah-news-article" onclick="location.href='<?=$url?>'">
+
+					<div class="cah-news-thumbnail" 
+						style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);""></div>
+
+					<div class="cah-news-content">
+						<h3 class="cah-news-site"><?=$site_name?></h3>
+						<h2 class="cah-news-title"><?=$title?></h2>
+						<div class="cah-news-excerpt"><?=$excerpt?></div>
+					</div>
+				</div>
+
+			<?php
+		}
+
 		$count++;
 	}
 
+	echo "</div>";
 	echo "</div>";
 }
 
