@@ -124,8 +124,10 @@ function news_func($atts = [], $content = null, $tag = '') {
 
 		$file = file_get_contents("https://".trim($url, " ")."/wp-json/wp/v2/news");
 		
-		if(empty($file))
-			return "One of the URLs entered is not a valid Wordpress API instance or does not have the CAH news plugin installed.";
+		if(empty($file)) {
+			echo ("One of the URLs entered is not a valid Wordpress API instance or does not have the CAH news plugin installed.");
+			break;
+		}
 
 		$result = json_decode($file);
 

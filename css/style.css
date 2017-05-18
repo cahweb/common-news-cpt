@@ -10,12 +10,13 @@
 	src: url("../fonts/Gotham-Book.ttf") format("truetype");
 }
 
-.cah-news {
-
+.cah-news-items {
+	flex: 2;
 }
 
 .cah-news-feature {
 	order: 2;
+	flex: 1;
 }
 
 .cah-news-article {
