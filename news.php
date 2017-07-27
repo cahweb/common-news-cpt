@@ -15,7 +15,7 @@
 // error_reporting(E_ALL);
 
 // Load our CSS if option is on
-if(get_option('news_style_option') == "on") 
+if(get_option('news_style_option') == "on")
 	add_action('wp_enqueue_scripts', 'add_style');
 
 function add_style(){
@@ -61,7 +61,7 @@ function api_register_approved() {
         'approved',
         array(
             'get_callback'    => 'api_get_approved',
-            'update_callback' => null,
+            'update_callback' => 'api_update_approved',
             'schema'          => null,
         )
     );
@@ -70,10 +70,15 @@ function api_register_approved() {
 function api_get_approved( $object, $field_name, $request ) {
     if(get_post_meta( $object[ 'id' ], $field_name, true ) == "on")
     	return "yes";
-    
+
     else
     	return "no";
 }
+
+function api_update_approved($value, $object, $field_name){
+	return update_post_meta( $object->ID, $field_name, strip_tags( $value ) );
+}
+
 
 function api_register_site_name() {
     register_rest_field( 'news',
@@ -89,6 +94,7 @@ function api_register_site_name() {
 function api_get_site_name( $object, $field_name, $request ) {
     return get_option('blogname');
 }
+
 
 function api_register_featured_media() {
     register_rest_field( 'news',
@@ -116,14 +122,14 @@ function news_func($atts = [], $content = null, $tag = '') {
 
 	// normalize attribute keys, lowercase
     $atts = array_change_key_case((array)$atts, CASE_LOWER);
- 
+
     // override default attributes with user attributes
     $cah_atts = shortcode_atts(['numposts' => '4'], $atts, $tag);
 
 	foreach($urls as $url){
 
 		$file = file_get_contents("https://".trim($url, " ")."/wp-json/wp/v2/news");
-		
+
 		if(empty($file)) {
 			echo ("One of the URLs entered is not a valid Wordpress API instance or does not have the CAH news plugin installed.");
 			break;
@@ -168,7 +174,7 @@ function news_func($atts = [], $content = null, $tag = '') {
 				<div class="cah-news-feature">
 					<div class="cah-news-article" onclick="location.href='<?=$url?>'">
 
-						<div class="cah-news-thumbnail" 
+						<div class="cah-news-thumbnail"
 							style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);""></div>
 
 						<div class="cah-news-content">
@@ -191,7 +197,7 @@ function news_func($atts = [], $content = null, $tag = '') {
 
 				<div class="cah-news-article" onclick="location.href='<?=$url?>'">
 
-					<div class="cah-news-thumbnail" 
+					<div class="cah-news-thumbnail"
 						style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);""></div>
 
 					<div class="cah-news-content">
@@ -247,7 +253,7 @@ function news_list_option_page() {
 		  <br>
 
 		  <label for="news_style_option">Use default style: </label>
-		  <input type="checkbox" id="news_style_option" name="news_style_option" <?php 
+		  <input type="checkbox" id="news_style_option" name="news_style_option" <?php
 		  	if(get_option('news_style_option') == "on")
 		  		echo "checked=\"checked\"";
 		  ?> />
@@ -262,19 +268,6 @@ function news_list_option_page() {
 /*------ Metabox Functions --------*/
 function news_init() {
 	global $current_user;
-
-    if($current_user->roles[0] == 'administrator') {
-        add_meta_box("news-admin-meta", "Admin Only", "news_meta_admin", "news", "normal", "high");
-    }
-}
-
-// Meta box functions
-function news_meta_admin() {
-	global $post; // Get global WP post var
-    $custom = get_post_custom($post->ID); // Set our custom values to an array in the global post var
-
-    // Form markup 
-    include_once('views/admin.php');
 }
 
 // Save our variables
