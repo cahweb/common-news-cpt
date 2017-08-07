@@ -122,7 +122,7 @@ function news_func($atts = [], $content = null, $tag = '') {
 
 	foreach($urls as $url){
 
-		$file = file_get_contents("https://".trim($url, " ")."/wp-json/wp/v2/news");
+		$file = file_get_contents("http://".trim($url, " ")."/wp-json/wp/v2/news");
 		
 		if(empty($file)) {
 			echo ("One of the URLs entered is not a valid Wordpress API instance or does not have the CAH news plugin installed.");
@@ -130,6 +130,8 @@ function news_func($atts = [], $content = null, $tag = '') {
 		}
 
 		$result = json_decode($file);
+		
+		
 
 		foreach($result as $post){
 			$post->{"date"} = strtotime($post->{"date"});
@@ -138,7 +140,7 @@ function news_func($atts = [], $content = null, $tag = '') {
 		$json = array_merge($result, $json);
 	}
 
-
+	
 	usort($json, function($a, $b) {
 		    if ($a->{"date"} == $b->{"date"}) {
 		        return 0;
@@ -151,6 +153,7 @@ function news_func($atts = [], $content = null, $tag = '') {
 
 	$post_amount = $cah_atts['numposts'];
 	$count = 0;
+	
 
 	foreach($json as $post) {
 
@@ -160,31 +163,35 @@ function news_func($atts = [], $content = null, $tag = '') {
 		$title = $post->{"title"}->{"rendered"};
 		$site_name = $post->{"site_name"};
 		$excerpt = $post->{"excerpt"}->{"rendered"};
+		$publish_date = date("F j", $post->{"date"});
 		$thumbnail = $post->{"featured_media"};
 		$url = $post->{"link"};
 
 		if($count == 0) {
 			?>
+            <? if($post->{"approved"} != "yes" && is_front_page())
+				continue; else { ?>
 				<div class="cah-news-feature">
 					<div class="cah-news-article" onclick="location.href='<?=$url?>'">
 
 						<div class="cah-news-thumbnail" 
-							style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);""></div>
+							style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);"></div>
 
 						<div class="cah-news-content">
 							<h3 class="cah-news-site"><?=$site_name?></h3>
 							<h2 class="cah-news-title"><?=$title?></h2>
+                            <div class="cah-news-date"><?=$publish_date?></div>
 							<div class="cah-news-excerpt"><?=$excerpt?></div>
 						</div>
 					</div>
 				</div>
-
+               <? } ?>
 				<div class="cah-news-items">
 			<?php
 
 		} else {
 
-			if($post->{"approved"} != "yes")
+			if($post->{"approved"} != "yes" && is_front_page())
 				continue;
 
 			?>
@@ -192,11 +199,12 @@ function news_func($atts = [], $content = null, $tag = '') {
 				<div class="cah-news-article" onclick="location.href='<?=$url?>'">
 
 					<div class="cah-news-thumbnail" 
-						style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);""></div>
+						style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);"></div>
 
 					<div class="cah-news-content">
 						<h3 class="cah-news-site"><?=$site_name?></h3>
 						<h2 class="cah-news-title"><?=$title?></h2>
+                        <div class="cah-news-date"><?=$publish_date?></div>
 						<div class="cah-news-excerpt"><?=$excerpt?></div>
 					</div>
 				</div>
@@ -266,6 +274,8 @@ function news_init() {
     if($current_user->roles[0] == 'administrator') {
         add_meta_box("news-admin-meta", "Admin Only", "news_meta_admin", "news", "normal", "high");
     }
+
+    add_meta_box("news-author-meta", "Author Info", "news_meta_author", "news", "normal", "high");
 }
 
 // Meta box functions
@@ -277,11 +287,20 @@ function news_meta_admin() {
     include_once('views/admin.php');
 }
 
+function news_meta_author() {
+	global $post; // Get global WP post var
+    $custom = get_post_custom($post->ID); // Set our custom values to an array in the global post var
+
+    // Form markup 
+    include_once('views/author.php');
+}
+
 // Save our variables
 function news_save() {
 	global $post;
 
 	update_post_meta($post->ID, "approved", $_POST["approved"]);
+	update_post_meta($post->ID, "author", $_POST["author"]);
 }
 
 // Settings array. This is so I can retrieve predefined wp_editor() settings to keep the markup clean

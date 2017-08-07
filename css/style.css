@@ -1,17 +1,13 @@
-@font-face {
-	font-family: Gotham;
-	font-weight: bold;
-	src: url("../fonts/Gotham-Bold.ttf") format("truetype");
-}
-
-@font-face {
-	font-family: Gotham;
-	font-weight: light;
-	src: url("../fonts/Gotham-Book.ttf") format("truetype");
+.cah-news {
+	padding-bottom: 50px;
 }
 
 .cah-news-items {
 	flex: 2;
+}
+
+.cah-news-date {
+	margin-bottom: 3px;
 }
 
 .cah-news-feature {
@@ -20,7 +16,7 @@
 }
 
 .cah-news-article {
-	font-family: Gotham;
+	font-family: 'Montserrat', sans-serif;
 	display: flex;
 	padding: 5px;
 	margin-bottom: 10px;
