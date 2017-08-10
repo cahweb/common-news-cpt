@@ -53,6 +53,7 @@ add_action('save_post', 'news_save');
 
 /*----- API Meta Registration ----*/
 add_action( 'rest_api_init', 'api_register_approved' );
+add_action( 'rest_api_init', 'api_register_author' );
 add_action( 'rest_api_init', 'api_register_site_name' );
 add_action( 'rest_api_init', 'api_register_featured_media' );
 
@@ -76,6 +77,25 @@ function api_get_approved( $object, $field_name, $request ) {
 }
 
 function api_update_approved($value, $object, $field_name){
+	return update_post_meta( $object->ID, $field_name, strip_tags( $value ) );
+}
+
+function api_register_author() {
+    register_rest_field( 'news',
+        'author',
+        array(
+            'get_callback'    => 'api_get_author',
+            'update_callback' => 'api_update_author',
+            'schema'          => null,
+        )
+    );
+}
+
+function api_get_author( $object, $field_name, $request ) {
+    return get_post_meta( $object[ 'id' ], $field_name, true );
+}
+
+function api_update_author($value, $object, $field_name){
 	return update_post_meta( $object->ID, $field_name, strip_tags( $value ) );
 }
 
