@@ -269,7 +269,19 @@ function news_list_option_page() {
 function news_init() {
 	global $current_user;
 
+if($current_user->roles[0] == 'administrator') {
+		add_meta_box("news-admin-meta", "Admin Only", "news_meta_admin", "news", "normal", "high");
+}
+
 	add_meta_box("news-author-meta", "Author Info", "news_meta_author", "news", "normal", "high");
+}
+
+function news_meta_admin() {
+		global $post; // Get global WP post var
+    $custom = get_post_custom($post->ID); // Set our custom values to an array in the global post var
+
+    // Form markup
+    include_once('views/admin.php');
 }
 
 function news_meta_author() {
