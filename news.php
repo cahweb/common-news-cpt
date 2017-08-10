@@ -79,7 +79,6 @@ function api_update_approved($value, $object, $field_name){
 	return update_post_meta( $object->ID, $field_name, strip_tags( $value ) );
 }
 
-
 function api_register_site_name() {
     register_rest_field( 'news',
         'site_name',
@@ -94,7 +93,6 @@ function api_register_site_name() {
 function api_get_site_name( $object, $field_name, $request ) {
     return get_option('blogname');
 }
-
 
 function api_register_featured_media() {
     register_rest_field( 'news',
@@ -166,46 +164,51 @@ function news_func($atts = [], $content = null, $tag = '') {
 		$title = $post->{"title"}->{"rendered"};
 		$site_name = $post->{"site_name"};
 		$excerpt = $post->{"excerpt"}->{"rendered"};
+		$publish_date = date("F j", $post->{"date"});
 		$thumbnail = $post->{"featured_media"};
 		$url = $post->{"link"};
 
 		if($count == 0) {
 			?>
+			<? if($post->{"approved"} != "yes" && is_front_page())
+				continue; else { ?>
 				<div class="cah-news-feature">
 					<div class="cah-news-article" onclick="location.href='<?=$url?>'">
 
 						<div class="cah-news-thumbnail"
-							style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);""></div>
+							style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);"></div>
 
 						<div class="cah-news-content">
 							<h3 class="cah-news-site"><?=$site_name?></h3>
 							<h2 class="cah-news-title"><?=$title?></h2>
+														<div class="cah-news-date"><?=$publish_date?></div>
 							<div class="cah-news-excerpt"><?=$excerpt?></div>
 						</div>
 					</div>
 				</div>
-
+							 <? } ?>
 				<div class="cah-news-items">
 			<?php
 
 		} else {
 
-			if($post->{"approved"} != "yes")
+			if($post->{"approved"} != "yes" && is_front_page())
 				continue;
 
 			?>
 
-				<div class="cah-news-article" onclick="location.href='<?=$url?>'">
+			<div class="cah-news-article" onclick="location.href='<?=$url?>'">
 
-					<div class="cah-news-thumbnail"
-						style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);""></div>
+				<div class="cah-news-thumbnail"
+					style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);"></div>
 
-					<div class="cah-news-content">
-						<h3 class="cah-news-site"><?=$site_name?></h3>
-						<h2 class="cah-news-title"><?=$title?></h2>
-						<div class="cah-news-excerpt"><?=$excerpt?></div>
-					</div>
+				<div class="cah-news-content">
+					<h3 class="cah-news-site"><?=$site_name?></h3>
+					<h2 class="cah-news-title"><?=$title?></h2>
+											<div class="cah-news-date"><?=$publish_date?></div>
+					<div class="cah-news-excerpt"><?=$excerpt?></div>
 				</div>
+			</div>
 
 			<?php
 		}
@@ -269,9 +272,9 @@ function news_list_option_page() {
 function news_init() {
 	global $current_user;
 
-if($current_user->roles[0] == 'administrator') {
-		add_meta_box("news-admin-meta", "Admin Only", "news_meta_admin", "news", "normal", "high");
-}
+	if($current_user->roles[0] == 'administrator') {
+			add_meta_box("news-admin-meta", "Admin Only", "news_meta_admin", "news", "normal", "high");
+	}
 
 	add_meta_box("news-author-meta", "Author Info", "news_meta_author", "news", "normal", "high");
 }
