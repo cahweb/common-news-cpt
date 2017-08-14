@@ -51,7 +51,21 @@ add_action("admin_init", "news_init");
 add_action('save_post', 'news_save');
 
 
-/*----- API Meta Registration ----*/
+/*----- API Route Registration -----*/
+add_action( 'rest_api_init', function () {
+	register_rest_route( 'news', '/sites', array(
+		'methods' => 'GET',
+		'callback' => 'get_all_sites',
+	) );
+} );
+
+function get_all_sites( $data ) {
+	$urls = explode(";", get_option('news_list_option'));
+
+	return $urls;
+}
+
+/*----- API Meta Registration -----*/
 add_action( 'rest_api_init', 'api_register_approved' );
 add_action( 'rest_api_init', 'api_register_author' );
 add_action( 'rest_api_init', 'api_register_site_name' );
