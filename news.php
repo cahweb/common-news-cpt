@@ -251,6 +251,7 @@ function news_func($atts = [], $content = null, $tag = '') {
 	}
 
 	echo "</div>";
+	echo "<a href='/newsroom/latest-news/' class='morenews'>Check out more stories</a>";
 	echo "</div>";
 }
 
