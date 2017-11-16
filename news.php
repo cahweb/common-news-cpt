@@ -83,11 +83,7 @@ function api_register_approved() {
 }
 
 function api_get_approved( $object, $field_name, $request ) {
-    if(get_post_meta( $object[ 'id' ], $field_name, true ) == "on")
-    	return "yes";
-
-    else
-    	return "no";
+    return intval(get_post_meta( $object[ 'id' ], $field_name, true ));
 }
 
 function api_update_approved($value, $object, $field_name){

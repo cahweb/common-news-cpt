@@ -1,18 +1,11 @@
 <div class="inner-meta">
-	<label>Display in CAH news: </label>
+	<label>Approval Level: </label>
 
-	<?php
-		$checked = $custom['approved'][0];
-		
-		if($checked!="off")
-		echo "Yes <input type=\"radio\" name=\"approved\" checked=\"checked\" value=\"on\"/>";
-		else
-		echo "Yes <input type=\"radio\" name=\"approved\" value=\"on\"/>";
-		
-		if($checked=="off")
-		echo "| No <input type=\"radio\" name=\"approved\" checked=\"checked\" value=\"off\"/>";
-		else
-		echo "| No <input type=\"radio\" name=\"approved\" value=\"off\"/>";
-
-	?>
+	<?php $approvalLevel = $custom['approved'][0];?>
+	
+	<select name="approved">
+		<option value="3" <?= $approvalLevel == 3 ? "selected" : ""?>>CAH Front page</option>
+		<option value="2" <?= $approvalLevel == 2 ? "selected" : ""?>>CAH News Room and Child Pages</option>
+		<option value="1" <?= $approvalLevel == 1 ? "selected" : ""?>>Child Pages</option>
+	</select>
 </div>
