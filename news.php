@@ -199,7 +199,7 @@ function news_func($atts = [], $content = null, $tag = '') {
 		$thumbnail = $post->{"featured_media"};
 		$url = $post->{"link"};
 
-		if($post->{"approved"} > $approval)
+		if($post->{"approved"} < $approval)
 			continue; 
 
 		if($count == 0) { ?>
