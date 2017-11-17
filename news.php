@@ -152,11 +152,11 @@ function news_func($atts = [], $content = null, $tag = '') {
     $atts = array_change_key_case((array)$atts, CASE_LOWER);
 
     // override default attributes with user attributes
-    $cah_atts = shortcode_atts(['numposts' => '4'], $atts, $tag);
+    $cah_atts = shortcode_atts(['numposts' => '4', 'approval' => '1'], $atts, $tag);
 
 	foreach($urls as $url){
 
-		$file = file_get_contents("https://".trim($url, " ")."/wp-json/wp/v2/news");
+		$file = file_get_contents("http://".trim($url, " ")."/wp-json/wp/v2/news");
 
 		if(empty($file)) {
 			echo ("One of the URLs entered is not a valid Wordpress API instance or does not have the CAH news plugin installed.");
@@ -184,6 +184,7 @@ function news_func($atts = [], $content = null, $tag = '') {
 	echo "<div class=\"cah-news\">";
 
 	$post_amount = $cah_atts['numposts'];
+	$approval = $cah_atts['approval'];
 	$count = 0;
 
 	foreach($json as $post) {
@@ -198,34 +199,31 @@ function news_func($atts = [], $content = null, $tag = '') {
 		$thumbnail = $post->{"featured_media"};
 		$url = $post->{"link"};
 
-		if($count == 0) {
-			?>
-			<? if($post->{"approved"} != "yes" && is_front_page())
-				continue; else { ?>
-				<div class="cah-news-feature">
-					<div class="cah-news-article" onclick="location.href='<?=$url?>'">
+		if($post->{"approved"} > $approval)
+			continue; 
 
-						<div class="cah-news-thumbnail"
-							style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);"></div>
+		if($count == 0) { ?>
+			<div class="cah-news-feature">
+				<div class="cah-news-article" onclick="location.href='<?=$url?>'">
 
-						<div class="cah-news-content">
-							<h3 class="cah-news-site"><?=$site_name?></h3>
-							<h2 class="cah-news-title"><?=$title?></h2>
-														<div class="cah-news-date"><?=$publish_date?></div>
-							<div class="cah-news-excerpt"><?=$excerpt?></div>
-						</div>
+					<div class="cah-news-thumbnail"
+						style="background-image: url(<?= (empty($thumbnail)) ? plugins_url('images/empty.png', __FILE__) : $thumbnail; ?>);"></div>
+
+					<div class="cah-news-content">
+						<h3 class="cah-news-site"><?=$site_name?></h3>
+						<h2 class="cah-news-title"><?=$title?></h2>
+													<div class="cah-news-date"><?=$publish_date?></div>
+						<div class="cah-news-excerpt"><?=$excerpt?></div>
 					</div>
 				</div>
-							 <? } ?>
-				<div class="cah-news-items">
+			</div>
+			
+			<div class="cah-news-items">
 			<?php
 
-		} else {
+		} 
 
-			if($post->{"approved"} != "yes" && is_front_page())
-				continue;
-
-			?>
+		else { ?>
 
 			<div class="cah-news-article" onclick="location.href='<?=$url?>'">
 
@@ -247,7 +245,6 @@ function news_func($atts = [], $content = null, $tag = '') {
 	}
 
 	echo "</div>";
-	echo "<a href='/newsroom/latest-news/' class='morenews'>Check out more stories</a>";
 	echo "</div>";
 }
 
