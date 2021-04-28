@@ -2,7 +2,7 @@
 
 /*
  *
- * Plugin Name: Common - News
+ * Plugin Name: Common - News CPT
  * Description: News CPT to be used with all CAH Wordpress Sites for news
  * Author: Alessandro Vecchi
  *
@@ -37,14 +37,18 @@ function news_create_type() {
 	        'rewrite' => array('slug' => 'news'),
 			'menu_icon'  => 'dashicons-format-aside',
 	        'query_var' => true,
+			'menu_position' => 5,
 	        'taxonomies' => array('category'),
 	        'supports' => array(
 	            'title',
 	            'editor',
 	            'excerpt',
-	            'thumbnail')
+	            'thumbnail',
+				'author',
+				'revisions')
 	    );
 	register_post_type( 'news' , $args );
+	register_taxonomy_for_object_type('post_tag', 'news');
 }
 
 add_action("admin_init", "news_init");
@@ -57,12 +61,26 @@ add_action( 'rest_api_init', function () {
 		'methods' => 'GET',
 		'callback' => 'get_all_sites',
 	) );
+
+	register_rest_route( 'news', '/depts', [
+		'methods' => WP_REST_Server::READABLE,
+		'callback' => 'cah_news_cpt_get_depts',
+	]);
 } );
 
 function get_all_sites( $data ) {
 	$urls = explode(";", get_option('news_list_option'));
 
 	return $urls;
+}
+
+function cah_news_cpt_get_depts() {
+	$terms = get_terms( [
+		'taxonomy' => 'dept',
+		'hide_empty' => false,
+	]);
+
+	return rest_ensure_response( $terms );
 }
 
 /*----- API Meta Registration -----*/
@@ -152,14 +170,20 @@ function news_func($atts = [], $content = null, $tag = '') {
     $atts = array_change_key_case((array)$atts, CASE_LOWER);
 
     // override default attributes with user attributes
-    $cah_atts = shortcode_atts(['numposts' => '4', 'approval' => '1'], $atts, $tag);
-
+    $cah_atts = shortcode_atts(['numposts' => '5', 'approval' => '1'], $atts, $tag);
+	
+	//point to news.cah.ucf.edu
+	$urls = array("news.cah.ucf.edu");
+	
 	foreach($urls as $url){
 
-		$file = file_get_contents("http://".trim($url, " ")."/wp-json/wp/v2/news");
+		if(is_front_page())
+		$file = file_get_contents("https://".trim($url, " ")."/wp-json/wp/v2/news?dept=99&per_page=10");
+		else
+		$file = file_get_contents("https://".trim($url, " ")."/wp-json/wp/v2/news?dept=99&per_page=100");
 
 		if(empty($file)) {
-			echo ("One of the URLs entered is not a valid Wordpress API instance or does not have the CAH news plugin installed.");
+			//echo ("One of the URLs entered is not a valid Wordpress API instance or does not have the CAH news plugin installed.");
 			break;
 		}
 
@@ -197,7 +221,10 @@ function news_func($atts = [], $content = null, $tag = '') {
 		$excerpt = $post->{"excerpt"}->{"rendered"};
 		$publish_date = date("F j", $post->{"date"});
 		$thumbnail = $post->{"featured_media"};
+		$thumbnail = preg_replace("/^http:/i", "https:", $thumbnail);
 		$url = $post->{"link"};
+		
+		//$url = str_replace("news.cah.ucf.edu", "cah.ucf.edu", $url);
 
 		if($post->{"approved"} < $approval)
 			continue; 
@@ -299,19 +326,33 @@ function news_list_option_page() {
 /*------ Metabox Functions --------*/
 function news_init() {
 	global $current_user;
-
-	if($current_user->roles[0] == 'administrator') {
+	
+	if($current_user->roles[0] == 'administrator' ||
+	strpos($current_user->user_login, 'vi498123') !== false || 
+	strpos($current_user->user_login, 'hgibson') !== false ) {
 			add_meta_box("news-admin-meta", "Admin Only", "news_meta_admin", "news", "normal", "high");
 	}
 
-	add_meta_box("news-author-meta", "Author Info", "news_meta_author", "news", "normal", "high");
+	add_meta_box("news-author-meta", "Byline Info", "news_meta_author", "news", "normal", "high");
+	add_meta_box("news-featured-image-display-meta", "Ignore Featured Image", "news_meta_display_featured_image", "news", "normal", "low");
 }
 
+function news_meta_display_featured_image() {
+    	// Toggle display of featured image on individual article page
+    global $post;
+    $custom = get_post_custom($post->ID);
+    if (!isset($custom['ignore_feat_img'][0])) {
+		update_post_meta($post->ID, 'ignore_feat_img', false);
+    }
+    include_once('views/ignore_featured_image_option.php');
+}
+
+// Meta box functions
 function news_meta_admin() {
-		global $post; // Get global WP post var
+	global $post; // Get global WP post var
     $custom = get_post_custom($post->ID); // Set our custom values to an array in the global post var
 
-    // Form markup
+    // Form markup 
     include_once('views/admin.php');
 }
 
@@ -326,9 +367,10 @@ function news_meta_author() {
 // Save our variables
 function news_save() {
 	global $post;
-
+if(!empty($post)){
 	update_post_meta($post->ID, "approved", $_POST["approved"]);
 	update_post_meta($post->ID, "author", $_POST["author"]);
+	update_post_meta($post->ID, "ignore_feat_img", $_POST["ignore_feat_img"] ? true : false);}
 }
 
 // Settings array. This is so I can retrieve predefined wp_editor() settings to keep the markup clean

@@ -1,5 +1,5 @@
 <div class="inner-meta">
-	<label>Author Name: </label>
+	<label>Byline: </label>
 
-	<input type="text" name="author" value="<?= $custom['author'][0] ?>"/>
+	<input type="text" name="author" value="<?= isset($custom['author'][0]) ? $custom['author'][0] : '' ?>"/>
 </div>
